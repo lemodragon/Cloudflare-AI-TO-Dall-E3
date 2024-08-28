@@ -1,0 +1,286 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI 绘画</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-image: url('https://i.postimg.cc/sfHc97PR/wolf3069636.jpg');
+            background-size: cover;
+            background-attachment: fixed;
+            padding: 20px;
+            color: white;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+        }
+        .container {
+            width: 100%;
+            max-width: 500px;
+            background-color: rgba(0, 0, 0, 0.7);
+            padding: 30px;
+            border-radius: 15px;
+            box-shadow: 0 0 20px rgba(0, 0, 0, 0.5);
+        }
+        h1 {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        input, select, button {
+            width: 100%;
+            padding: 12px;
+            margin-bottom: 15px;
+            border: none;
+            border-radius: 8px;
+            background-color: rgba(255, 255, 255, 0.1);
+            color: white;
+            font-size: 16px;
+            transition: all 0.3s ease;
+            box-sizing: border-box;
+        }
+        input:focus, select:focus {
+            outline: none;
+            box-shadow: 0 0 0 2px rgba(76, 175, 80, 0.5);
+        }
+        input::placeholder {
+            color: rgba(255, 255, 255, 0.7);
+        }
+        select {
+            appearance: none;
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' fill='none' stroke='white' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
+            background-repeat: no-repeat;
+            background-position: right 12px center;
+            background-size: 16px;
+        }
+        button {
+            background-color: #4CAF50;
+            color: white;
+            cursor: pointer;
+            transition: background-color 0.3s, transform 0.1s;
+        }
+        button:hover {
+            background-color: #45a049;
+        }
+        button:active {
+            transform: scale(0.98);
+        }
+        #enhanceLevelContainer {
+            display: flex;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+        #enhanceLevelContainer span {
+            flex-shrink: 0;
+            margin-right: 10px;
+        }
+        #enhance_level_slider {
+            flex-grow: 1;
+            -webkit-appearance: none;
+            width: 100%;
+            height: 8px;
+            border-radius: 5px;
+            background: #d3d3d3;
+            outline: none;
+            opacity: 0.7;
+            transition: opacity .2s;
+        }
+        #enhance_level_slider:hover {
+            opacity: 1;
+        }
+        #enhance_level_slider::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            background: #4CAF50;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        #enhance_level_slider::-moz-range-thumb {
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            background: #4CAF50;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        #enhance_level_slider::-webkit-slider-thumb:hover,
+        #enhance_level_slider::-moz-range-thumb:hover {
+            box-shadow: 0 0 0 3px rgba(76, 175, 80, 0.3);
+        }
+        #result {
+            margin-top: 20px;
+            text-align: center;
+        }
+        #generatedImage {
+            max-width: 100%;
+            height: auto;
+            margin-top: 20px;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.3);
+        }
+        #refinedPrompt {
+            margin-top: 20px;
+            padding: 10px;
+            background-color: rgba(255, 255, 255, 0.1);
+            border-radius: 8px;
+            max-height: 100px;
+            overflow-y: auto;
+        }
+        .footer {
+            margin-top: 30px;
+            text-align: center;
+            font-size: 14px;
+            opacity: 0.7;
+        }
+        #notification {
+            position: fixed;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            background-color: rgba(76, 175, 80, 0.9);
+            color: white;
+            padding: 10px 20px;
+            border-radius: 5px;
+            display: none;
+            z-index: 1000;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>AI 绘画</h1>
+        
+        <input type="password" id="authKey" placeholder="输入认证密钥">
+        
+        <select id="modelSelect">
+            <option value="dall-e-3">DALL-E 3 (Stable Diffusion XL Base 1.0)</option>
+            <option value="dall-e-2">DALL-E 2 (Stable Diffusion XL Lightning)</option>
+            <option value="dall-e-1">DALL-E 1 (DreamShaper 8 LCM)</option>
+        </select>
+        
+        <select id="sizeSelect">
+            <option value="1024x1024">1024x1024</option>
+            <option value="512x512">512x512</option>
+            <option value="256x256">256x256</option>
+        </select>
+        
+        <select id="qualitySelect">
+            <option value="standard">标准</option>
+            <option value="hd">高清</option>
+        </select>
+        
+        <div id="enhanceLevelContainer">
+            <span>增强级别:</span>
+            <input type="range" id="enhance_level_slider" min="0" max="100" value="0">
+            <span id="enhance_level_value">0</span>
+        </div>
+        
+        <input type="text" id="promptInput" placeholder="输入你的提示词">
+        
+        <button id="generateButton">生成图像</button>
+        
+        <div id="result">
+            <img id="generatedImage" style="display: none;">
+            <div id="refinedPrompt"></div>
+        </div>
+        
+        <div class="footer">
+            <p>© 2024 薰衣草Pub提供技术支持，保留所有权利。</p>
+            <p>本工具仅用于学习和研究目的。请勿生成或使用有害内容。</p>
+        </div>
+    </div>
+
+    <div id="notification"></div>
+
+    <script>
+        const slider = document.getElementById('enhance_level_slider');
+        const value = document.getElementById('enhance_level_value');
+        const generateButton = document.getElementById('generateButton');
+        const authKeyInput = document.getElementById('authKey');
+        const promptInput = document.getElementById('promptInput');
+        const modelSelect = document.getElementById('modelSelect');
+        const sizeSelect = document.getElementById('sizeSelect');
+        const qualitySelect = document.getElementById('qualitySelect');
+        const generatedImage = document.getElementById('generatedImage');
+        const refinedPrompt = document.getElementById('refinedPrompt');
+        const notification = document.getElementById('notification');
+
+        slider.oninput = function() {
+            value.textContent = this.value;
+        }
+
+        function showNotification(message, duration = 5000, isError = false) {
+            notification.textContent = message;
+            notification.style.display = 'block';
+            notification.style.backgroundColor = isError ? 'rgba(220, 53, 69, 0.9)' : 'rgba(76, 175, 80, 0.9)';
+            setTimeout(() => {
+                notification.style.display = 'none';
+            }, duration);
+        }
+
+        generateButton.addEventListener('click', async () => {
+            if (!authKeyInput.value) {
+                showNotification('请输入认证密钥', 3000, true);
+                return;
+            }
+
+            if (!promptInput.value) {
+                showNotification('请输入提示词', 3000, true);
+                return;
+            }
+
+            showNotification('正在生成图像，请稍候...');
+            generateButton.disabled = true;
+
+            try {
+                const response = await fetch('/v1/images/generations', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${authKeyInput.value}`
+                    },
+                    body: JSON.stringify({
+                        model: modelSelect.value,
+                        prompt: promptInput.value,
+                        n: 1,
+                        size: sizeSelect.value,
+                        quality: qualitySelect.value,
+                        enhance_level: parseInt(slider.value)
+                    })
+                });
+
+                if (!response.ok) {
+                    if (response.status === 401) {
+                        throw new Error('认证失败，请检查您的认证密钥');
+                    } else {
+                        throw new Error(`图像生成失败 (HTTP ${response.status})`);
+                    }
+                }
+
+                const data = await response.json();
+                if (data.data && data.data.length > 0) {
+                    const imageUrl = new URL(data.data[0].url);
+                    imageUrl.searchParams.append('auth', authKeyInput.value);
+                    generatedImage.src = imageUrl.toString();
+                    generatedImage.style.display = 'block';
+                    refinedPrompt.textContent = data.data[0].refined_prompt;
+                    showNotification('图像生成成功！');
+                } else {
+                    throw new Error('未收到有效的图像数据');
+                }
+            } catch (error) {
+                showNotification(error.message, 5000, true);
+                console.error('Error:', error);
+            } finally {
+                generateButton.disabled = false;
+            }
+        });
+    </script>
+</body>
+</html>
