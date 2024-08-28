@@ -46,6 +46,8 @@
    ```
 
 ## 图形化界面
+<img width="826" alt="屏幕截图 2024-08-24 124830" src="https://github.com/user-attachments/assets/5eeba1f1-de97-4f35-8d29-b2fb8a63a23c">
+<img width="1268" alt="屏幕截图 2024-08-24 124801" src="https://github.com/user-attachments/assets/7c2b9e50-13d4-450a-a3d8-edd30b51b549">
 
 ### 功能
 
