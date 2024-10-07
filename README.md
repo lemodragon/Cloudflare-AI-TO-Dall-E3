@@ -54,6 +54,7 @@
    - DALL-E 3 (Stable Diffusion XL Base 1.0)
    - DALL-E 2 (Stable Diffusion XL Lightning)
    - DALL-E 1 (DreamShaper 8 LCM)
+   - CF-FLUX (Flux-1-schnell)
 
 2. **图像尺寸**：1024x1024, 512x512, 256x256
 
