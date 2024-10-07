@@ -4,8 +4,9 @@ const WORKER_URL = '改为你Worker的自定义域名或workers.dev域名';
 const availableModels = {
   "dall-e-3": "@cf/stabilityai/stable-diffusion-xl-base-1.0",
   "dall-e-2": "@cf/bytedance/stable-diffusion-xl-lightning",
-  "dall-e-1": "@cf/lykon/dreamshaper-8-lcm"
-}
+  "dall-e-1": "@cf/lykon/dreamshaper-8-lcm",
+  "cf-flux": "@cf/black-forest-labs/flux-1-schnell"
+};
 
 const DEBUG = true;
 const MAX_STORAGE_BYTES = 8 * 1024 * 1024 * 1024; // 8GB 最大存储限制
@@ -159,15 +160,37 @@ export default {
         // 映射模型
         const cfModel = availableModels[model] || availableModels["dall-e-3"];
 
-        const inputs = {
-          prompt: prompt,
-          size: size,
-          quality: quality,
-          enhance_level: enhance_level
-        };
+        let inputs;
+        let imageData;
 
-        const imageData = await env.AI.run(cfModel, inputs);
+        if (model === "cf-flux") {
+          // FLUX模型特殊处理
+          const [width, height] = size.split('x').map(Number);
+          inputs = {
+            prompt: prompt,
+            num_steps: 4,
+            width: width,
+            height: height
+          };
+        } else {
+          // 其他模型处理
+          inputs = {
+            prompt: prompt,
+            size: size,
+            quality: quality,
+            enhance_level: enhance_level
+          };
+        }
+
+        const result = await env.AI.run(cfModel, inputs);
         
+        // 确保imageData是正确的类型
+        if (model === "cf-flux") {
+          imageData = base64ToArrayBuffer(result.image);
+        } else {
+          imageData = result;
+        }
+
         const timeNow = Math.floor(Date.now() / 1000);
         const imgKey = await getMD5(`${prompt}${timeNow}`);
 
@@ -315,4 +338,13 @@ async function manageStorage(R2) {
   }
 
   console.log(`Current storage after management: ${(currentStorageBytes / (1024 * 1024)).toFixed(2)} MB`);
+}
+
+function base64ToArrayBuffer(base64) {
+  const binaryString = atob(base64);
+  const bytes = new Uint8Array(binaryString.length);
+  for (let i = 0; i < binaryString.length; i++) {
+    bytes[i] = binaryString.charCodeAt(i);
+  }
+  return bytes.buffer;
 }
