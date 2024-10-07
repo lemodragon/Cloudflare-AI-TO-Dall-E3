@@ -18,7 +18,7 @@
 
 - 拥有 Workers 和 AI 访问权限的 Cloudflare 账户
 - 在您的 Cloudflare 账户中设置好的 R2 存储桶
-- （可选）Worker 的自定义域名
+- (可选) Worker 的自定义域名
 
 ## 设置步骤
 
